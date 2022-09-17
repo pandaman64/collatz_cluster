@@ -1,0 +1,5 @@
+[workspace]
+
+members = [
+    "collatz_compute"
+]
