@@ -8,6 +8,7 @@ async fn main() -> eyre::Result<()> {
     tracing_subscriber::fmt::init();
 
     let app = Router::new()
+        // Seems not working at all :(
         .layer(TraceLayer::new_for_http())
         .route("/steps/:number", get(compute_steps));
 
