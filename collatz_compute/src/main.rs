@@ -1,7 +1,8 @@
 use std::net::SocketAddr;
 
-use axum::{extract::Path, routing::get, Router};
+use axum::{extract::Path, routing::get, Json, Router};
 use moka::sync::Cache;
+use serde::Serialize;
 use tower_http::trace::TraceLayer;
 
 #[tokio::main]
@@ -41,10 +42,22 @@ fn compute(number: u64) -> u64 {
         }
     }
 
-    tracing::debug!(number, counter, "Collatz");
+    tracing::debug!(number, counter, "Cache miss");
     counter
 }
 
-async fn compute_steps(Path(number): Path<u64>, cache: Cache<u64, u64>) -> String {
-    cache.get_with(number, move || compute(number)).to_string()
+#[derive(Serialize)]
+struct ComputeStepsResponse {
+    steps: u64,
+    cache_hit: bool,
+}
+
+async fn compute_steps(
+    Path(number): Path<u64>,
+    cache: Cache<u64, u64>,
+) -> Json<ComputeStepsResponse> {
+    let cache_hit = cache.contains_key(&number);
+    let steps = cache.get_with(number, move || compute(number));
+
+    Json(ComputeStepsResponse { steps, cache_hit })
 }

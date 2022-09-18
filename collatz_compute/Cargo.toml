@@ -9,6 +9,7 @@ edition = "2021"
 axum = "0.5.16"
 eyre = "0.6.8"
 moka = "0.9.4"
+serde = { version = "1.0.144", features = ["derive"] }
 tokio = { version = "1.21.1", features = ["full", "tracing"] }
 tower-http = { version = "0.3.4", features = ["trace"] }
 tracing = "0.1.36"
