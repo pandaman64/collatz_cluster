@@ -1,16 +1,23 @@
 use std::net::SocketAddr;
 
 use axum::{extract::Path, routing::get, Router};
+use moka::sync::Cache;
 use tower_http::trace::TraceLayer;
 
 #[tokio::main]
 async fn main() -> eyre::Result<()> {
     tracing_subscriber::fmt::init();
 
+    // The number of capacity depents on the memory size
+    let cache = Cache::new(10000);
+
     let app = Router::new()
         // Seems not working at all :(
         .layer(TraceLayer::new_for_http())
-        .route("/steps/:number", get(compute_steps));
+        .route(
+            "/steps/:number",
+            get(move |number| compute_steps(number, cache.clone())),
+        );
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
     tracing::info!(%addr, "Serving at");
@@ -21,9 +28,8 @@ async fn main() -> eyre::Result<()> {
     Ok(())
 }
 
-async fn compute_steps(Path(number): Path<u64>) -> String {
+fn compute(number: u64) -> u64 {
     let mut result = number;
-    // TODO: implement cache
     let mut counter: u64 = 0;
 
     while result > 1 {
@@ -36,5 +42,9 @@ async fn compute_steps(Path(number): Path<u64>) -> String {
     }
 
     tracing::debug!(number, counter, "Collatz");
-    counter.to_string()
+    counter
+}
+
+async fn compute_steps(Path(number): Path<u64>, cache: Cache<u64, u64>) -> String {
+    cache.get_with(number, move || compute(number)).to_string()
 }

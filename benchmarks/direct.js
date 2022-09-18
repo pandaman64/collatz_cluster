@@ -7,7 +7,7 @@ export let options = {
 };
 
 export default function() {
-    randomSeed(__VU);
+    randomSeed(__VU * 31 + __ITER);
     let number = Math.floor(Math.random() * 10000);
     let response = http.get(`http://localhost:8000/steps/${number}`);
 };
