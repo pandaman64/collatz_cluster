@@ -12,9 +12,10 @@
           inherit system;
         };
 
-        naersk' = pkgs.callPackage naersk {};
+        naersk' = pkgs.callPackage naersk { };
 
-      in rec {
+      in
+      rec {
         # For `nix build` & `nix run`:
         defaultPackage = naersk'.buildPackage {
           src = ./.;
@@ -22,7 +23,7 @@
 
         # For `nix develop`:
         devShell = pkgs.mkShell {
-          nativeBuildInputs = with pkgs; [ rustc cargo ];
+          buildInputs = with pkgs; [ k6 nixpkgs-fmt ];
         };
       }
     );

@@ -13,6 +13,7 @@ async fn main() -> eyre::Result<()> {
         .route("/steps/:number", get(compute_steps));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8000));
+    tracing::info!(%addr, "Serving at");
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await?;
@@ -20,18 +21,20 @@ async fn main() -> eyre::Result<()> {
     Ok(())
 }
 
-async fn compute_steps(Path(mut number): Path<u64>) -> String {
+async fn compute_steps(Path(number): Path<u64>) -> String {
+    let mut result = number;
     // TODO: implement cache
     let mut counter: u64 = 0;
 
-    while number > 1 {
+    while result > 1 {
         counter += 1;
-        if number % 2 == 0 {
-            number /= 2;
+        if result % 2 == 0 {
+            result /= 2;
         } else {
-            number = 3 * number + 1;
+            result = 3 * result + 1;
         }
     }
 
+    tracing::debug!(number, counter, "Collatz");
     counter.to_string()
 }
